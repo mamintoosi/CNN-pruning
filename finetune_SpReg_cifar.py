@@ -17,6 +17,7 @@ import time
 import matplotlib.pyplot as plt
 from sparse_regularization import sparse_regularization
 from torchvision import datasets, transforms
+import random
 
 class ModifiedVGG16Model(torch.nn.Module):
     def __init__(self):
@@ -136,10 +137,19 @@ class PrunningFineTuner_VGG16:
         classes = ('plane', 'car', 'bird', 'cat',
                'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
         batch_size = 32
-        workers = 4
+        workers = 2
+
+        # انتخاب زیرمجموعه‌ای کوچک‌تر برای سرعت بیشتر
+        List = range(len(trainset))
+        rnd_subset = random.sample(List, len(trainset)/20) 
+        trainset_sub = torch.utils.data.Subset(trainset, rnd_subset)
+        print('Len TrainSet',len(trainset), len(trainset_sub))
+        List = range(len(testset))
+        rnd_subset = random.sample(List, len(testset)/20) 
+        testset_sub = torch.utils.data.Subset(testset, rnd_subset)
     
-        trainloader = torch.utils.data.DataLoader(trainset,batch_size=batch_size,shuffle=True,num_workers=workers)
-        testloader = torch.utils.data.DataLoader(testset,batch_size=batch_size,shuffle=False, num_workers=workers)
+        trainloader = torch.utils.data.DataLoader(trainset_sub,batch_size=batch_size,shuffle=True,num_workers=workers)
+        testloader = torch.utils.data.DataLoader(testset_sub,batch_size=batch_size,shuffle=False, num_workers=workers)
 
         self.train_data_loader = trainloader
         self.test_data_loader = testloader
@@ -389,6 +399,8 @@ if __name__ == '__main__':
             transforms.Normalize((0.485, 0.456, 0.406),
                                 (0.229, 0.224, 0.225)),
             ])
+# https://github.com/kuangliu/pytorch-cifar/blob/master/main.py            
+# transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),            
 
 # if dataset == 'cifar10':
     transform_train = transforms.Compose([
