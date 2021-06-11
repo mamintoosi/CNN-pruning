@@ -143,7 +143,7 @@ class PrunningFineTuner_VGG16:
         List = range(len(trainset))
         rnd_subset = random.sample(List, int(len(trainset)/10)) 
         trainset_sub = torch.utils.data.Subset(trainset, rnd_subset)
-        print('Len TrainSet',len(trainset), len(trainset_sub))
+        # print('Len TrainSet',len(trainset), len(trainset_sub))
         List = range(len(testset))
         rnd_subset = random.sample(List, int(len(testset)/10)) 
         testset_sub = torch.utils.data.Subset(testset, rnd_subset)
