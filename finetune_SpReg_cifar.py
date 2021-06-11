@@ -16,6 +16,7 @@ from heapq import nsmallest
 import time
 import matplotlib.pyplot as plt
 from sparse_regularization import sparse_regularization
+from torchvision import datasets, transforms
 
 class ModifiedVGG16Model(torch.nn.Module):
     def __init__(self):
@@ -34,7 +35,7 @@ class ModifiedVGG16Model(torch.nn.Module):
             nn.Dropout(),
             nn.Linear(4096, 4096),
             nn.ReLU(inplace=True),
-            nn.Linear(4096, 2))
+            nn.Linear(4096, 10))
 
     def forward(self, x):
         x = self.features(x)
@@ -126,9 +127,23 @@ class FilterPrunner:
 
 class PrunningFineTuner_VGG16:
     def __init__(self, train_path, test_path, model):
-        self.train_data_loader = dataset.loader(train_path)
-        self.test_data_loader = dataset.test_loader(test_path)
-        self.eval_data_loader = dataset.eval_loader(test_path,batch_size=1,num_workers=0)
+        # self.train_data_loader = dataset.loader(train_path)
+        # self.test_data_loader = dataset.test_loader(test_path)
+        # self.eval_data_loader = dataset.eval_loader(test_path,batch_size=1,num_workers=0)
+
+        trainset = datasets.CIFAR10(root=data_path,train=True,download=True,transform=transform_train)
+        testset = datasets.CIFAR10(root=data_path,train=False,download=True,transform=transform_test)
+        classes = ('plane', 'car', 'bird', 'cat',
+               'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+        batch_size = 32
+        workers = 4
+    
+        trainloader = torch.utils.data.DataLoader(trainset,batch_size=batch_size,shuffle=True,num_workers=workers)
+        testloader = torch.utils.data.DataLoader(testset,batch_size=batch_size,shuffle=False, num_workers=workers)
+
+        self.train_data_loader = trainloader
+        self.test_data_loader = testloader
+        self.eval_data_loader = testloader
 
         self.model = model
         self.criterion = torch.nn.CrossEntropyLoss()
@@ -363,7 +378,29 @@ def get_args():
 if __name__ == '__main__':
     # global args 
     args = get_args()
-    # args.models_dir = 'C:/Archive/data/models/covid/'
+
+    dsName = 'cifar10'
+    num_classes = 10
+
+    data_path = '/content/data'
+    transform_test = transforms.Compose([
+            transforms.Resize([224,224]),
+            transforms.ToTensor(),
+            transforms.Normalize((0.485, 0.456, 0.406),
+                                (0.229, 0.224, 0.225)),
+            ])
+
+# if dataset == 'cifar10':
+    transform_train = transforms.Compose([
+            # transforms.RandomCrop(32,padding = 4),
+            transforms.Resize([224,224]),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize((0.485, 0.456, 0.406),
+                                (0.229, 0.224, 0.225)),
+        ])
+
+
     args.models_dir = 'models/'
     reg_name = args.reg_name
 
