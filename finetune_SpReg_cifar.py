@@ -141,11 +141,11 @@ class PrunningFineTuner_VGG16:
 
         # انتخاب زیرمجموعه‌ای کوچک‌تر برای سرعت بیشتر
         List = range(len(trainset))
-        rnd_subset = random.sample(List, len(trainset)/20) 
+        rnd_subset = random.sample(List, int(len(trainset)/20)) 
         trainset_sub = torch.utils.data.Subset(trainset, rnd_subset)
         print('Len TrainSet',len(trainset), len(trainset_sub))
         List = range(len(testset))
-        rnd_subset = random.sample(List, len(testset)/20) 
+        rnd_subset = random.sample(List, int(len(testset)/20)) 
         testset_sub = torch.utils.data.Subset(testset, rnd_subset)
     
         trainloader = torch.utils.data.DataLoader(trainset_sub,batch_size=batch_size,shuffle=True,num_workers=workers)
