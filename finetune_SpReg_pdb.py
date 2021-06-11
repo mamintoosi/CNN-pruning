@@ -137,8 +137,8 @@ class PrunningFineTuner_VGG16:
             classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
             frac = 0.1
         elif ds_name == 'STL10':
-            trainset = datasets.STL10(root=data_path,train=True,download=True,transform=transform_train)
-            testset = datasets.STL10(root=data_path,train=False,download=True,transform=transform_test)
+            trainset = datasets.STL10(root=data_path,split='train',download=True,transform=transform_train)
+            testset = datasets.STL10(root=data_path,split='test',download=True,transform=transform_test)
             classes = ('airplane', 'bird', 'car', 'cat', 'deer', 'dog', 'horse', 'monkey', 'ship', 'truck')
             frac = 0.5
             
