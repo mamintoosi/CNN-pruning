@@ -131,12 +131,12 @@ class PrunningFineTuner_VGG16:
         # self.train_data_loader = dataset.loader(train_path)
         # self.test_data_loader = dataset.test_loader(test_path)
         # self.eval_data_loader = dataset.eval_loader(test_path,batch_size=1,num_workers=0)
-        if ds_name == 'cifar10':
+        if ds_name == 'CIFAR10':
             trainset = datasets.CIFAR10(root=data_path,train=True,download=True,transform=transform_train)
             testset = datasets.CIFAR10(root=data_path,train=False,download=True,transform=transform_test)
             classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
             frac = 0.1
-        elif ds_name == 'stl10':
+        elif ds_name == 'STL10':
             trainset = datasets.STL10(root=data_path,train=True,download=True,transform=transform_train)
             testset = datasets.STL10(root=data_path,train=False,download=True,transform=transform_test)
             classes = ('airplane', 'bird', 'car', 'cat', 'deer', 'dog', 'horse', 'monkey', 'ship', 'truck')
