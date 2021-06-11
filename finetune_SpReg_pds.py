@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 from sparse_regularization import sparse_regularization
 from torchvision import datasets, transforms
 import random
+import cPickle as pkl
 
 class ModifiedVGG16Model(torch.nn.Module):
     def __init__(self):
@@ -135,6 +136,11 @@ class PrunningFineTuner_VGG16:
             trainset = datasets.CIFAR10(root=data_path,train=True,download=True,transform=transform_train)
             testset = datasets.CIFAR10(root=data_path,train=False,download=True,transform=transform_test)
             classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+            frac = 0.1
+        if ds_name == 'FashionMNIST':
+            trainset = datasets.FashionMNIST(root=data_path,train=True,download=True,transform=transform_train)
+            testset = datasets.FashionMNIST(root=data_path,train=False,download=True,transform=transform_test)
+            classes = ('T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot')
             frac = 0.1
         elif ds_name == 'STL10':
             trainset = datasets.STL10(root=data_path,split='train',download=True,transform=transform_train)
@@ -294,6 +300,7 @@ class PrunningFineTuner_VGG16:
         print(iterations)
         print("Number of prunning iterations to reduce 70% filters", iterations)
 
+        dics = [] # A list for saving dics
         for i in range(iterations):
             print("Iter: ", i+1, '/', iterations)
             print("Ranking filters.. ")
@@ -305,6 +312,10 @@ class PrunningFineTuner_VGG16:
                 layers_prunned[layer_index] = layers_prunned[layer_index] + 1 
 
             print("Layers that will be prunned", layers_prunned)
+
+            # Add to list for future saving
+            dics.append(layers_prunned)
+
             print("Prunning filters.. ")
             model = self.model.cpu()
             for layer_index, filter_index in prune_targets:
@@ -335,6 +346,10 @@ class PrunningFineTuner_VGG16:
         #     args.prune_input,args.ds_name, args.reg_name)
         model_file_name = '{}{}.pt'.format(args.models_dir,args.output_model)
         torch.save(model, model_file_name)
+
+        dic_file_name = '{}.pkl'.format(args.output_model)
+        pkl.dump(dics, open(dic_file_name, "wb" ) )
+
 
     def prune_reg(self):
         if args.reg_name is not None:
