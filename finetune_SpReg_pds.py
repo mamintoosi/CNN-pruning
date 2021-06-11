@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 from sparse_regularization import sparse_regularization
 from torchvision import datasets, transforms
 import random
-import cPickle as pkl
+import pickle as pkl
 
 class ModifiedVGG16Model(torch.nn.Module):
     def __init__(self):
