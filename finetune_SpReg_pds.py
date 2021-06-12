@@ -148,8 +148,8 @@ class PrunningFineTuner_VGG16:
             classes = ('airplane', 'bird', 'car', 'cat', 'deer', 'dog', 'horse', 'monkey', 'ship', 'truck')
             frac = 0.5
         elif ds_name == 'LSUN':
-            trainset = datasets.LSUN(root=data_path,classes='train',download=True,transform=transform_train) #download=True,
-            testset = datasets.LSUN(root=data_path,classes='test',download=True,transform=transform_test)
+            trainset = datasets.LSUN(root=data_path,classes='train',transform=transform_train) #download=True,
+            testset = datasets.LSUN(root=data_path,classes='test',transform=transform_test)
             classes = ('bedroom', 'bridge', 'church_outdoor', 'classroom', 'conference_room', 'dining_room', 'kitchen', 'living_room', 'restaurant', 'tower')
             frac = 0.01
             
@@ -415,10 +415,20 @@ if __name__ == '__main__':
     # global args 
     args = get_args()
 
-    # dsName = args.ds_name #'cifar10'
+    ds_name = args.ds_name #'cifar10'
     num_classes = 10
 
     data_path = '/content/data'
+
+if ds_name in ['cifar10','STL10']:
+    transform_train = transforms.Compose([
+            # transforms.RandomCrop(32,padding = 4),
+            transforms.Resize([224,224]),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize((0.485, 0.456, 0.406),
+                                (0.229, 0.224, 0.225)),
+        ])
     transform_test = transforms.Compose([
             transforms.Resize([224,224]),
             transforms.ToTensor(),
@@ -428,16 +438,22 @@ if __name__ == '__main__':
 # https://github.com/kuangliu/pytorch-cifar/blob/master/main.py            
 # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),            
 
-# if dataset == 'cifar10':
+if ds_name == 'FashionMNIST':
     transform_train = transforms.Compose([
-            # transforms.RandomCrop(32,padding = 4),
+            transforms.Lambda(lambda x: x.repeat(3, 1, 1)),
             transforms.Resize([224,224]),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             transforms.Normalize((0.485, 0.456, 0.406),
                                 (0.229, 0.224, 0.225)),
         ])
-
+    transform_test = transforms.Compose([
+            transforms.Lambda(lambda x: x.repeat(3, 1, 1)),
+            transforms.Resize([224,224]),
+            transforms.ToTensor(),
+            transforms.Normalize((0.485, 0.456, 0.406),
+                                (0.229, 0.224, 0.225)),
+            ])
 
     args.models_dir = 'models/'
     reg_name = args.reg_name
