@@ -21,6 +21,7 @@ import random
 import pickle as pkl
 from pycm import *
 # conda install -c sepandhaghighi pycm
+import itertools
 
 class ModifiedVGG16Model(torch.nn.Module):
     def __init__(self):
@@ -161,7 +162,8 @@ class PrunningFineTuner_VGG16:
             frac = 0.01
             
         batch_size = 32
-        workers = 2
+        workers = 0 # for local
+#         workers = 2 # for colab
 
         # انتخاب زیرمجموعه‌ای کوچک‌تر برای سرعت بیشتر
         List = range(len(trainset))
@@ -189,8 +191,10 @@ class PrunningFineTuner_VGG16:
         # print("Test starts...")
         self.model.eval()
         correct = 0
-        incorrect = 0
+        # incorrect = 0
         total = 0
+        Labels = []
+        Preds = []
 
         for i, (batch, label) in enumerate(self.test_data_loader):
             if args.use_cuda:
@@ -198,19 +202,22 @@ class PrunningFineTuner_VGG16:
             output = self.model(Variable(batch))
             pred = output.data.max(1)[1]
             correct += pred.cpu().eq(label).sum()
-            incorrect += pred.cpu().ne(label).sum()
+            # incorrect += pred.cpu().ne(label).sum()
             total += label.size(0)
-            print(pred.cpu(), label)
+            # print(pred.cpu(), label)
+            Preds.append(pred.cpu().tolist())
+            Labels.append(label.tolist())
         
         # fp  = float(correct) / total
         acc = float(correct) / total
         print("Accuracy :", acc)
         
-        cm = ConfusionMatrix(actual_vector=label, predict_vector=pred.cpu()) # Create CM From Data
-        # cm.classes
-        cm.table
-        print(cm)
         self.model.train()
+        
+        Labels = list(itertools.chain.from_iterable(Labels))
+        Preds = list(itertools.chain.from_iterable(Preds))
+
+        return Preds, Labels
 
     def eval_test_results(self):
         class_names = ['COVID','Normal']
@@ -428,6 +435,9 @@ def get_args():
     return args
 
 if __name__ == '__main__':
+    # برای اجرای محلی 
+    __spec__ = "ModuleSpec(name='builtins', loader=<class '_frozen_importlib.BuiltinImporter'>)"
+
     # global args 
     args = get_args()
 
@@ -436,44 +446,45 @@ if __name__ == '__main__':
 
     data_path = '/content/data'
 
-if ds_name in ['cifar10','STL10']:
-    transform_train = transforms.Compose([
-            # transforms.RandomCrop(32,padding = 4),
-            transforms.Resize([224,224]),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize((0.485, 0.456, 0.406),
-                                (0.229, 0.224, 0.225)),
-        ])
-    transform_test = transforms.Compose([
-            transforms.Resize([224,224]),
-            transforms.ToTensor(),
-            transforms.Normalize((0.485, 0.456, 0.406),
-                                (0.229, 0.224, 0.225)),
+    if ds_name in ['cifar10','STL10']:
+        transform_train = transforms.Compose([
+                # transforms.RandomCrop(32,padding = 4),
+                transforms.Resize([224,224]),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize((0.485, 0.456, 0.406),
+                                    (0.229, 0.224, 0.225)),
             ])
-# https://github.com/kuangliu/pytorch-cifar/blob/master/main.py            
-# transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),            
+        transform_test = transforms.Compose([
+                transforms.Resize([224,224]),
+                transforms.ToTensor(),
+                transforms.Normalize((0.485, 0.456, 0.406),
+                                    (0.229, 0.224, 0.225)),
+                ])
+    # https://github.com/kuangliu/pytorch-cifar/blob/master/main.py            
+    # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),            
 
-if ds_name == 'FashionMNIST':
-    transform_train = transforms.Compose([
-            # transforms.Lambda(lambda x: x.repeat(3, 1, 1)),
-            transforms.Grayscale(num_output_channels=3),
-            transforms.Resize([224,224]),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize((0.485, 0.456, 0.406),
-                                (0.229, 0.224, 0.225)),
-        ])
-    transform_test = transforms.Compose([
-            transforms.Grayscale(num_output_channels=3),
-            transforms.Resize([224,224]),
-            transforms.ToTensor(),
-            transforms.Normalize((0.485, 0.456, 0.406),
-                                (0.229, 0.224, 0.225)),
+    if ds_name in ['MNIST', 'FashionMNIST']:
+        transform_train = transforms.Compose([
+                # transforms.Lambda(lambda x: x.repeat(3, 1, 1)),
+                transforms.Grayscale(num_output_channels=3),
+                transforms.Resize([224,224]),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize((0.485, 0.456, 0.406),
+                                    (0.229, 0.224, 0.225)),
             ])
+        transform_test = transforms.Compose([
+                transforms.Grayscale(num_output_channels=3),
+                transforms.Resize([224,224]),
+                transforms.ToTensor(),
+                transforms.Normalize((0.485, 0.456, 0.406),
+                                    (0.229, 0.224, 0.225)),
+                ])
 
     args.models_dir = 'models/'
     reg_name = args.reg_name
+    print(ds_name)
 
     if args.train:
         model = ModifiedVGG16Model()
@@ -521,7 +532,13 @@ if ds_name == 'FashionMNIST':
         else:
             fine_tuner.prune_reg()
 
-    elif args.test:
-        fine_tuner.eval_test_results()
+#     elif args.test:
+#         Preds ,Labels =  fine_tuner.test()
+        # fine_tuner.eval_test_results()
 
     # print(model)
+Preds ,Labels =  fine_tuner.test()
+cm = ConfusionMatrix(actual_vector=Labels, predict_vector=Preds) # Create CM From Data
+# cm.classes
+cm.table
+print(cm)
