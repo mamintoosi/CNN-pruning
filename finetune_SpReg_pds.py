@@ -440,7 +440,8 @@ if ds_name in ['cifar10','STL10']:
 
 if ds_name == 'FashionMNIST':
     transform_train = transforms.Compose([
-            transforms.Lambda(lambda x: x.repeat(3, 1, 1)),
+            # transforms.Lambda(lambda x: x.repeat(3, 1, 1)),
+            transforms.Grayscale(num_output_channels=3),
             transforms.Resize([224,224]),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
@@ -448,7 +449,7 @@ if ds_name == 'FashionMNIST':
                                 (0.229, 0.224, 0.225)),
         ])
     transform_test = transforms.Compose([
-            transforms.Lambda(lambda x: x.repeat(3, 1, 1)),
+            transforms.Grayscale(num_output_channels=3),
             transforms.Resize([224,224]),
             transforms.ToTensor(),
             transforms.Normalize((0.485, 0.456, 0.406),
