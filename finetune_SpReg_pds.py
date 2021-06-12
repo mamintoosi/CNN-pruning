@@ -19,6 +19,8 @@ from sparse_regularization import sparse_regularization
 from torchvision import datasets, transforms
 import random
 import pickle as pkl
+from pycm import *
+# conda install -c sepandhaghighi pycm
 
 class ModifiedVGG16Model(torch.nn.Module):
     def __init__(self):
@@ -137,6 +139,11 @@ class PrunningFineTuner_VGG16:
             testset = datasets.CIFAR10(root=data_path,train=False,download=True,transform=transform_test)
             classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
             frac = 0.1
+        if ds_name == 'MNIST':
+            trainset = datasets.MNIST(root=data_path,train=True,download=True,transform=transform_train)
+            testset = datasets.MNIST(root=data_path,train=False,download=True,transform=transform_test)
+            classes = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
+            frac = 0.1
         if ds_name == 'FashionMNIST':
             trainset = datasets.FashionMNIST(root=data_path,train=True,download=True,transform=transform_train)
             testset = datasets.FashionMNIST(root=data_path,train=False,download=True,transform=transform_test)
@@ -182,6 +189,7 @@ class PrunningFineTuner_VGG16:
         # print("Test starts...")
         self.model.eval()
         correct = 0
+        incorrect = 0
         total = 0
 
         for i, (batch, label) in enumerate(self.test_data_loader):
@@ -190,10 +198,18 @@ class PrunningFineTuner_VGG16:
             output = self.model(Variable(batch))
             pred = output.data.max(1)[1]
             correct += pred.cpu().eq(label).sum()
+            incorrect += pred.cpu().ne(label).sum()
             total += label.size(0)
+            print(pred.cpu(), label)
         
-        print("Accuracy :", float(correct) / total)
+        # fp  = float(correct) / total
+        acc = float(correct) / total
+        print("Accuracy :", acc)
         
+        cm = ConfusionMatrix(actual_vector=label, predict_vector=pred.cpu()) # Create CM From Data
+        # cm.classes
+        cm.table
+        print(cm)
         self.model.train()
 
     def eval_test_results(self):
