@@ -147,6 +147,11 @@ class PrunningFineTuner_VGG16:
             testset = datasets.STL10(root=data_path,split='test',download=True,transform=transform_test)
             classes = ('airplane', 'bird', 'car', 'cat', 'deer', 'dog', 'horse', 'monkey', 'ship', 'truck')
             frac = 0.5
+        elif ds_name == 'LSUN':
+            trainset = datasets.LSUN(root=data_path,classes='train',transform=transform_train) #download=True,
+            testset = datasets.LSUN(root=data_path,classes='test',transform=transform_test)
+            classes = ('bedroom', 'bridge', 'church_outdoor', 'classroom', 'conference_room', 'dining_room', 'kitchen', 'living_room', 'restaurant', 'tower')
+            frac = 0.01
             
         batch_size = 32
         workers = 2
