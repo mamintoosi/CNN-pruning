@@ -213,7 +213,7 @@ class PrunningFineTuner_VGG16:
         for i, (batch, label) in enumerate(test_loader):
             if args.use_cuda:
                 batch = batch.cuda()
-                # label = label.cuda()
+                label = label.cuda()
 
             output = self.model(Variable(batch))
             loss = self.criterion(output, Variable(label))
