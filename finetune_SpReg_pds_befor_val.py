@@ -175,26 +175,20 @@ class PrunningFineTuner_VGG16:
         List = range(len(testset))
         rnd_subset = random.sample(List, int(len(testset)*frac)) 
         testset_sub = torch.utils.data.Subset(testset, rnd_subset)
-
-        List = range(len(testset))
-        rnd_subset = random.sample(List, int(len(testset)*frac)) 
-        valset_sub = torch.utils.data.Subset(testset, rnd_subset)
     
         trainloader = torch.utils.data.DataLoader(trainset_sub,batch_size=batch_size,shuffle=True,num_workers=workers)
-        testloader = torch.utils.data.DataLoader(testset_sub,batch_size=batch_size,shuffle=True, num_workers=workers)
-        valloader = torch.utils.data.DataLoader(valset_sub,batch_size=batch_size,shuffle=True, num_workers=workers)
+        testloader = torch.utils.data.DataLoader(testset_sub,batch_size=batch_size,shuffle=False, num_workers=workers)
 
         self.train_data_loader = trainloader
         self.test_data_loader = testloader
-        self.val_data_loader = valloader
-        # self.eval_data_loader = testloader
+        self.eval_data_loader = testloader
 
         self.model = model
         self.criterion = torch.nn.CrossEntropyLoss()
         self.prunner = FilterPrunner(self.model) 
         self.model.train()
 
-    def test(self, val_test_set = 'val'):
+    def test(self):
         # return
         # print("Test starts...")
         self.model.eval()
@@ -203,20 +197,11 @@ class PrunningFineTuner_VGG16:
         total = 0
         Labels = []
         Preds = []
-        epoch_loss= []
-        if val_test_set == 'val':
-            test_loader = self.val_data_loader
-        else: # Test set
-            test_loader = self.test_data_loader
 
-        # for i, (batch, label) in enumerate(self.test_data_loader):
-        for i, (batch, label) in enumerate(test_loader):
+        for i, (batch, label) in enumerate(self.test_data_loader):
             if args.use_cuda:
                 batch = batch.cuda()
             output = self.model(Variable(batch))
-            loss = self.criterion(output, Variable(label))
-            epoch_loss.append(loss.item())
-
             pred = output.data.max(1)[1]
             correct += pred.cpu().eq(label).sum()
             # incorrect += pred.cpu().ne(label).sum()
@@ -234,7 +219,7 @@ class PrunningFineTuner_VGG16:
         Labels = list(itertools.chain.from_iterable(Labels))
         Preds = list(itertools.chain.from_iterable(Preds))
 
-        return Preds, Labels, epoch_loss
+        return Preds, Labels
 
     def eval_test_results(self):
         # کدها رو حذف کردم. از کووید قابل برداشت است
@@ -245,26 +230,16 @@ class PrunningFineTuner_VGG16:
             optimizer = optim.Adam(model.classifier.parameters(), lr=0.0001)
             # optimizer = optim.SGD(model.classifier.parameters(), lr=0.0001, momentum=0.9)
 
-        Loss_trains=  []
-        Loss_vals=  []
         for i in range(epoches):
             print("Epoch: ", i+1, '/', epoches)
-            epoch_loss = self.train_epoch(optimizer,regularization=regularization)
-            Loss_trains.append(sum(epoch_loss)/len(epoch_loss))
-
-            Preds, Labels, epoch_loss = self.test()
-            Loss_vals.append(sum(epoch_loss)/len(epoch_loss))
-
+            self.train_epoch(optimizer,regularization=regularization)
+            self.test()
         print("Finished fine tuning.")
-        return Loss_trains, Loss_vals
         
 
     def train_epoch(self, optimizer = None, rank_filters = False, regularization = None):
-        epoch_loss= []
         for i, (batch, label) in enumerate(self.train_data_loader):
-            loss = self.train_batch(optimizer, batch, label, rank_filters, regularization)
-            epoch_loss.append(loss.item())
-        return epoch_loss    
+            self.train_batch(optimizer, batch, label, rank_filters, regularization)
 
     def train_batch(self, optimizer, batch, label, rank_filters, regularization=None):
 
@@ -286,7 +261,6 @@ class PrunningFineTuner_VGG16:
                 loss += 1e-8*regularization(0.5)
             loss.backward()
             optimizer.step()
-        return loss    
 
     def get_candidates_to_prune(self, num_filters_to_prune):
         self.prunner.reset()
@@ -490,24 +464,16 @@ if __name__ == '__main__':
     fine_tuner = PrunningFineTuner_VGG16(args.ds_name, model)
 
     if args.train:            
-        Loss_trains, Loss_vals = fine_tuner.train(epoches=args.train_epoch)#, regularization=regularizationFun)
+        fine_tuner.train(epoches=args.train_epoch)#, regularization=regularizationFun)
         model_file_name = '{}{}.pt'.format(args.models_dir,args.output_model)
         torch.save(model, model_file_name)
-        loss_file_name = '{}_loss.pkl'.format(args.ds_name)
-        with open(loss_file_name, 'wb') as f:
-            pkl.dump((Loss_trains, Loss_vals), f)
-        files.download(loss_file_name)
-# # Load
-# with open('data.dat', 'rb') as f:
-#     exp, kills, items = pickle.load(f)
-
     elif args.prune:
         if args.reg_name is None:
             fine_tuner.prune()
         else:
             fine_tuner.prune_reg()
 
-    Preds ,Labels =  fine_tuner.test(val_test_set = 'test')
+    Preds ,Labels =  fine_tuner.test()
     cm = ConfusionMatrix(actual_vector=Labels, predict_vector=Preds) # Create CM From Data
     cm_file_name = '{}_{}_cm.pkl'.format(args.ds_name, args.output_model)
     pkl.dump(cm, open(cm_file_name, "wb" ) )
