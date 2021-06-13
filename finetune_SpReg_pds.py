@@ -185,8 +185,8 @@ class PrunningFineTuner_VGG16:
         valset_sub = torch.utils.data.Subset(testset, rnd_subset)
     
         trainloader = torch.utils.data.DataLoader(trainset_sub,batch_size=batch_size,shuffle=True,num_workers=workers)
-        testloader = torch.utils.data.DataLoader(testset_sub,batch_size=batch_size,shuffle=True, num_workers=workers)
-        valloader = torch.utils.data.DataLoader(valset_sub,batch_size=batch_size,shuffle=True, num_workers=workers)
+        testloader = torch.utils.data.DataLoader(testset_sub,batch_size=batch_size,shuffle=False, num_workers=workers)
+        valloader = torch.utils.data.DataLoader(valset_sub,batch_size=batch_size,shuffle=False, num_workers=workers)
 
         self.train_data_loader = trainloader
         self.test_data_loader = testloader
