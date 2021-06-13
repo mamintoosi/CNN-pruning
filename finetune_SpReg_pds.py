@@ -22,6 +22,7 @@ import pickle as pkl
 from pycm import *
 # conda install -c sepandhaghighi pycm
 import itertools
+from google.colab import files
 
 class ModifiedVGG16Model(torch.nn.Module):
     def __init__(self):
@@ -220,46 +221,8 @@ class PrunningFineTuner_VGG16:
         return Preds, Labels
 
     def eval_test_results(self):
-        class_names = ['COVID','Normal']
-        plt.figure(figsize=(25,10))
-        count = np.zeros(2)
-
-        self.model.eval()
-        correct = 0
-        total = 0
-
-        for i, (batch, label) in enumerate(self.eval_data_loader):
-            if args.use_cuda:
-                batch = batch.cuda()
-            # print(pred.cpu().eq(label).sum())
-            output = self.model(Variable(batch))
-            pred = output.data.max(1)[1]
-            correct += pred.cpu().eq(label).sum()
-            isPredCorrect = pred.cpu().eq(label)
-            total += label.size(0)
-            if count[label]>=5:
-                continue
-            count[label]+=1
-            plt.subplot(2,5,5*label+count[label])
-            plt.xticks([])
-            plt.yticks([])
-            plt.grid(False)
-
-            inp = np.transpose(batch[0].numpy(), (1, 2, 0))#inp.numpy().transpose((1, 2, 0))
-            mean = [0.485, 0.456, 0.406]
-            std=[0.229, 0.224, 0.225]
-            inp = std * inp + mean
-            inp = np.clip(inp, 0, 1)
-            plt.imshow(inp)
-            if isPredCorrect==True:
-                color = 'blue'
-            else:
-                color = 'red'
-            plt.xlabel("{}".format(class_names[pred]),color=color, fontsize=25)
-        plt.show()        
-        print("Accuracy :", float(correct) / total)
-        
-        self.model.train()
+        # کدها رو حذف کردم. از کووید قابل برداشت است
+        return
 
     def train(self, optimizer = None, epoches=10, regularization=None):
         if optimizer is None:
@@ -375,7 +338,7 @@ class PrunningFineTuner_VGG16:
         model_file_name = '{}{}.pt'.format(args.models_dir,args.output_model)
         torch.save(model, model_file_name)
 
-        dic_file_name = '{}.pkl'.format(args.output_model)
+        dic_file_name = '{}_{}_dic.pkl'.format(args.ds_name, args.output_model)
         pkl.dump(dics, open(dic_file_name, "wb" ) )
 
 
@@ -437,6 +400,7 @@ def get_args():
 if __name__ == '__main__':
     # برای اجرای محلی 
     # __spec__ = "ModuleSpec(name='builtins', loader=<class '_frozen_importlib.BuiltinImporter'>)"
+    # در اجرای محلی پارامترهای رشته‌ای ارسالی به مین نباید داخل تک کوتیشن باشند
 
     # global args 
     args = get_args()
@@ -491,28 +455,6 @@ if __name__ == '__main__':
     elif args.test or args.prune:
         model_file_name = '{}{}.pt'.format(args.models_dir, args.input_model)
         model = torch.load(model_file_name, map_location=lambda storage, loc: storage)
-        # pasvand = ''
-        # if args.reg_name is not None:
-        #     pasvand = '_reg-{}'.format(args.reg_name)
-        # if args.prune:
-        #     pasvand += '_pruned'
-        # model_file_name = '{}VGG_model_{}{}.pt'.format(args.models_dir, \
-        #     args.ds_name, pasvand)
-        # model = torch.load(models_dir+"VGG_model_COVID19_prunned.pt", map_location=lambda storage, loc: storage)
-        # model = torch.load(models_dir+"painting_model_reg_prunned.pt", map_location=lambda storage, loc: storage)
-    # elif args.prune:
-    #     # if args.prune_input is None or args.prune_input == 'vgg':
-    #     #     model_file_name = '{}VGG_model_{}.pt'.format(args.models_dir, \
-    #     #     args.ds_name)
-    #     # elif args.prune_input == 'taylor':
-    #     #     model_file_name = '{}VGG_model_{}_reg-{}_pruned.pt'.format(args.models_dir, \
-    #     #     args.ds_name,args.reg_name)
-    #     # elif args.prune_input == 'reg':
-    #     #     model_file_name = '{}VGG_model_{}_reg-{}.pt'.format(args.models_dir, \
-    #     #     args.ds_name,args.reg_name)
-    #     model_file_name = '{}{}.pt'.format(args.models_dir,args.input_model)
-    #     model = torch.load(model_file_name, map_location=lambda storage, loc: storage)
-    #     # model = torch.load(models_dir+"VGG_model_COVID19.pt", map_location=lambda storage, loc: storage)
     
     if args.use_cuda:
         model = model.cuda()
@@ -523,8 +465,6 @@ if __name__ == '__main__':
     if args.train:            
         fine_tuner.train(epoches=args.train_epoch)#, regularization=regularizationFun)
         model_file_name = '{}{}.pt'.format(args.models_dir,args.output_model)
-        # model_file_name = '{}VGG_model_{}.pt'.format(args.models_dir, \
-        #     args.ds_name)
         torch.save(model, model_file_name)
     elif args.prune:
         if args.reg_name is None:
@@ -542,3 +482,9 @@ cm = ConfusionMatrix(actual_vector=Labels, predict_vector=Preds) # Create CM Fro
 # cm.classes
 cm.table
 print(cm)
+cm_file_name = '{}_{}_cm.pkl'.format(args.ds_name, args.output_model)
+pkl.dump(cm, open(cm_file_name, "wb" ) )
+files.download(cm_file_name)
+
+dic_file_name = '{}_{}_dic.pkl'.format(args.ds_name, args.output_model)
+files.download(dic_file_name)
