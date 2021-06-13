@@ -213,17 +213,19 @@ class PrunningFineTuner_VGG16:
         for i, (batch, label) in enumerate(test_loader):
             if args.use_cuda:
                 batch = batch.cuda()
+                # label = label.cuda()
+
             output = self.model(Variable(batch))
             loss = self.criterion(output, Variable(label))
             epoch_loss.append(loss.item())
 
             pred = output.data.max(1)[1]
-            correct += pred.cpu().eq(label).sum()
+            correct += pred.cpu().eq(label.cpu()).sum()
             # incorrect += pred.cpu().ne(label).sum()
             total += label.size(0)
             # print(pred.cpu(), label)
             Preds.append(pred.cpu().tolist())
-            Labels.append(label.tolist())
+            Labels.append(label.cpu().tolist())
         
         # fp  = float(correct) / total
         acc = float(correct) / total
