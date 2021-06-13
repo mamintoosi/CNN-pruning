@@ -162,8 +162,8 @@ class PrunningFineTuner_VGG16:
             frac = 0.01
             
         batch_size = 32
-        workers = 0 # for local
-#         workers = 2 # for colab
+        # workers = 0 # for local
+        workers = 2 # for colab
 
         # انتخاب زیرمجموعه‌ای کوچک‌تر برای سرعت بیشتر
         List = range(len(trainset))
@@ -436,7 +436,7 @@ def get_args():
 
 if __name__ == '__main__':
     # برای اجرای محلی 
-    __spec__ = "ModuleSpec(name='builtins', loader=<class '_frozen_importlib.BuiltinImporter'>)"
+    # __spec__ = "ModuleSpec(name='builtins', loader=<class '_frozen_importlib.BuiltinImporter'>)"
 
     # global args 
     args = get_args()
