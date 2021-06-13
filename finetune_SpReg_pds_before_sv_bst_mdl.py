@@ -1,14 +1,14 @@
 import torch
 from torch.autograd import Variable
 from torchvision import models
-# import cv2
-# import sys
+import cv2
+import sys
 import numpy as np
-# import torchvision
+import torchvision
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-# import dataset
+import dataset
 from prune import *
 import argparse
 from operator import itemgetter
@@ -24,10 +24,6 @@ from pycm import *
 import itertools
 from google.colab import files
 import os
-import seaborn as sns
-from collections import Counter
-import pandas as pd
-from tqdm.notebook import tqdm
 
 class ModifiedVGG16Model(torch.nn.Module):
     def __init__(self):
@@ -146,12 +142,12 @@ class PrunningFineTuner_VGG16:
             testset = datasets.CIFAR10(root=data_path,train=False,download=True,transform=transform_test)
             classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
             frac = 0.1
-        elif ds_name == 'MNIST':
+        if ds_name == 'MNIST':
             trainset = datasets.MNIST(root=data_path,train=True,download=True,transform=transform_train)
             testset = datasets.MNIST(root=data_path,train=False,download=True,transform=transform_test)
             classes = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
             frac = 0.1
-        elif ds_name == 'FashionMNIST':
+        if ds_name == 'FashionMNIST':
             trainset = datasets.FashionMNIST(root=data_path,train=True,download=True,transform=transform_train)
             testset = datasets.FashionMNIST(root=data_path,train=False,download=True,transform=transform_test)
             classes = ('T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot')
@@ -161,11 +157,11 @@ class PrunningFineTuner_VGG16:
             testset = datasets.STL10(root=data_path,split='test',download=True,transform=transform_test)
             classes = ('airplane', 'bird', 'car', 'cat', 'deer', 'dog', 'horse', 'monkey', 'ship', 'truck')
             frac = 0.5
-        # elif ds_name == 'LSUN':
-        #     trainset = datasets.LSUN(root=data_path,classes='train',transform=transform_train) #download=True,
-        #     testset = datasets.LSUN(root=data_path,classes='test',transform=transform_test)
-        #     classes = ('bedroom', 'bridge', 'church_outdoor', 'classroom', 'conference_room', 'dining_room', 'kitchen', 'living_room', 'restaurant', 'tower')
-        #     frac = 0.01
+        elif ds_name == 'LSUN':
+            trainset = datasets.LSUN(root=data_path,classes='train',transform=transform_train) #download=True,
+            testset = datasets.LSUN(root=data_path,classes='test',transform=transform_test)
+            classes = ('bedroom', 'bridge', 'church_outdoor', 'classroom', 'conference_room', 'dining_room', 'kitchen', 'living_room', 'restaurant', 'tower')
+            frac = 0.01
             
         batch_size = 32
         # workers = 0 # for local
@@ -231,8 +227,9 @@ class PrunningFineTuner_VGG16:
             Preds.append(pred.cpu().tolist())
             Labels.append(label.cpu().tolist())
         
-        # acc = float(correct) / total
-        # print("Accuracy :", acc)
+        # fp  = float(correct) / total
+        acc = float(correct) / total
+        print("Accuracy :", acc)
         
         self.model.train()
         
@@ -252,21 +249,13 @@ class PrunningFineTuner_VGG16:
 
         Loss_trains=  []
         Loss_vals=  []
-        min_val_loss = np.inf
-        for i in tqdm(range(epoches), desc='Training'):
+        for i in range(epoches):
             print("Epoch: ", i+1, '/', epoches)
             epoch_loss = self.train_epoch(optimizer,regularization=regularization)
             Loss_trains.append(sum(epoch_loss)/len(epoch_loss))
 
             Preds, Labels, epoch_loss = self.test()
-            val_loss = sum(epoch_loss)/len(epoch_loss)
-            Loss_vals.append(val_loss)
-
-            # Save the best model
-            if val_loss < min_val_loss:
-                min_val_loss = val_loss
-                model_file_name = '{}{}.pt'.format(args.models_dir,args.output_model)
-                torch.save(self.model, model_file_name)
+            Loss_vals.append(sum(epoch_loss)/len(epoch_loss))
 
         print("Finished fine tuning.")
         return Loss_trains, Loss_vals
@@ -375,9 +364,8 @@ class PrunningFineTuner_VGG16:
         # torch.save(model, models_dir+"VGG_model_COVID19_prunned.pt")
         # model_file_name = '{}_prnIn_{}_reg-{}_pruned.pt'.format(args.models_dir, \
         #     args.prune_input,args.ds_name, args.reg_name)
-
-        # model_file_name = '{}{}.pt'.format(args.models_dir,args.output_model)
-        # torch.save(model, model_file_name)
+        model_file_name = '{}{}.pt'.format(args.models_dir,args.output_model)
+        torch.save(model, model_file_name)
 
         dic_file_name = '{}_{}_dic.pkl'.format(args.ds_name, args.output_model)
         pkl.dump(dics, open(dic_file_name, "wb" ) )
@@ -412,24 +400,8 @@ class PrunningFineTuner_VGG16:
 
         # model_file_name = '{}_prnIn-{}_{}_reg-{}.pt'.format(args.models_dir, \
         #     args.prune_input,args.ds_name, args.reg_name)
- 
-        # model_file_name = '{}{}.pt'.format(args.models_dir,args.output_model)
-        # torch.save(model, model_file_name)
-
-def bar_filters_pruned(dic):
-    filters_pruned = dict(Counter(dic[0])+Counter(dic[1])+Counter(dic[2])+\
-                          Counter(dic[3])+Counter(dic[4]))
-    sum_filters_pruned = 0
-    dic_obd = {}
-    for k,v in filters_pruned.items():
-        dic_obd[map_layer_nums[k]] = v
-        sum_filters_pruned += v
-    print(sum_filters_pruned)
-    print(dic_obd)
-    keys_obd = list(dic_obd.keys())
-    vals_obd = [float(dic_obd[k]) for k in keys_obd]
-    sns.barplot(x=keys_obd, y=vals_obd)
-    return dic_obd
+        model_file_name = '{}{}.pt'.format(args.models_dir,args.output_model)
+        torch.save(model, model_file_name)
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -458,8 +430,6 @@ if __name__ == '__main__':
     # برای اجرای محلی 
     # __spec__ = "ModuleSpec(name='builtins', loader=<class '_frozen_importlib.BuiltinImporter'>)"
     # در اجرای محلی پارامترهای رشته‌ای ارسالی به مین نباید داخل تک کوتیشن باشند
-
-    map_layer_nums = {0:1,2:2,5:3,7:4,10:5,12:6,14:7,17:8,19:9,21:10,24:11,26:12,28:13}
 
     # global args 
     args = get_args()
