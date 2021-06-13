@@ -424,11 +424,11 @@ def bar_filters_pruned(dic):
     for k,v in filters_pruned.items():
         dic_obd[map_layer_nums[k]] = v
         sum_filters_pruned += v
-    print(sum_filters_pruned)
-    print(dic_obd)
-    keys_obd = list(dic_obd.keys())
-    vals_obd = [float(dic_obd[k]) for k in keys_obd]
-    sns.barplot(x=keys_obd, y=vals_obd)
+    # print(sum_filters_pruned)
+    # print(dic_obd)
+    # keys_obd = list(dic_obd.keys())
+    # vals_obd = [float(dic_obd[k]) for k in keys_obd]
+    # sns.barplot(x=keys_obd, y=vals_obd)
     return dic_obd
 
 def get_args():
@@ -469,40 +469,74 @@ if __name__ == '__main__':
 
     data_path = '/content/data'
 
-    if ds_name in ['cifar10','STL10']:
+    if ds_name in ['cifar10']:
         transform_train = transforms.Compose([
                 # transforms.RandomCrop(32,padding = 4),
                 transforms.Resize([224,224]),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
-                transforms.Normalize((0.485, 0.456, 0.406),
-                                    (0.229, 0.224, 0.225)),
+                transforms.Normalize((0.4914, 0.4822, 0.4465),
+                                    (0.2023, 0.1994, 0.2010)),
             ])
         transform_test = transforms.Compose([
                 transforms.Resize([224,224]),
                 transforms.ToTensor(),
-                transforms.Normalize((0.485, 0.456, 0.406),
-                                    (0.229, 0.224, 0.225)),
+                transforms.Normalize((0.4914, 0.4822, 0.4465),
+                                    (0.2023, 0.1994, 0.2010)),
                 ])
     # https://github.com/kuangliu/pytorch-cifar/blob/master/main.py            
     # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),            
 
-    if ds_name in ['MNIST', 'FashionMNIST']:
+    if ds_name in ['STL10']:
+        transform_train = transforms.Compose([
+                # transforms.RandomCrop(32,padding = 4),
+                transforms.Resize([224,224]),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5),
+                                    (0.5, 0.5, 0.5)),
+            ])
+        transform_test = transforms.Compose([
+                transforms.Resize([224,224]),
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5),
+                                    (0.5, 0.5, 0.5)),
+                ])
+
+    # MNIST Coef from: https://www.programmersought.com/article/5163444351/
+    if ds_name in ['MNIST']:
         transform_train = transforms.Compose([
                 # transforms.Lambda(lambda x: x.repeat(3, 1, 1)),
                 transforms.Grayscale(num_output_channels=3),
                 transforms.Resize([224,224]),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
-                transforms.Normalize((0.485, 0.456, 0.406),
-                                    (0.229, 0.224, 0.225)),
+                transforms.Normalize((0.1307, 0.1307, 0.1307),
+                                    (0.3081, 0.3081, 0.3081)),
             ])
         transform_test = transforms.Compose([
                 transforms.Grayscale(num_output_channels=3),
                 transforms.Resize([224,224]),
                 transforms.ToTensor(),
-                transforms.Normalize((0.485, 0.456, 0.406),
-                                    (0.229, 0.224, 0.225)),
+                transforms.Normalize((0.1307, 0.1307, 0.1307),
+                                    (0.3081, 0.3081, 0.3081)),
+                ])
+    if ds_name in ['FashionMNIST']:
+        transform_train = transforms.Compose([
+                # transforms.Lambda(lambda x: x.repeat(3, 1, 1)),
+                transforms.Grayscale(num_output_channels=3),
+                transforms.Resize([224,224]),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5),
+                                    (0.5, 0.5, 0.5)),
+            ])
+        transform_test = transforms.Compose([
+                transforms.Grayscale(num_output_channels=3),
+                transforms.Resize([224,224]),
+                transforms.ToTensor(),
+                transforms.Normalize((0.1307, 0.1307, 0.1307),
+                                    (0.3081, 0.3081, 0.3081)),
                 ])
 
     args.models_dir = 'models/'
@@ -529,9 +563,6 @@ if __name__ == '__main__':
         with open(loss_file_name, 'wb') as f:
             pkl.dump((Train_loss, Val_loss), f)
         files.download(loss_file_name)
-# # Load
-# with open('data.dat', 'rb') as f:
-#     exp, kills, items = pickle.load(f)
 
     elif args.prune:
         if args.reg_name is None:
@@ -551,7 +582,11 @@ if __name__ == '__main__':
 
     if args.test:
         cm.plot(cmap=plt.cm.Greens,normalized=False,number_label=True,plot_lib="seaborn")
-        print(cm)
+        # print(cm)
+        print('ACC={:.2f}'.format(cm.Overall_ACC))
+        print("\t".join("{}:{:.2f}".format(k, v) for k, v in cm.AUC.items()))
+        print('FNR:{:.2f}, FPR:{:.2f}'.format(cm.FNR_Macro, cm.FPR_Macro))
+        print('TNR:{:.2f}, TPR:{:.2f}'.format(cm.TNR_Macro, cm.TPR_Macro))
         # cm.classes
         # cm.table
 
