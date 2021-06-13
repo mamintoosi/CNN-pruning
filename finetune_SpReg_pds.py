@@ -250,17 +250,17 @@ class PrunningFineTuner_VGG16:
             optimizer = optim.Adam(model.classifier.parameters(), lr=0.0001)
             # optimizer = optim.SGD(model.classifier.parameters(), lr=0.0001, momentum=0.9)
 
-        Loss_trains=  []
-        Loss_vals=  []
+        Train_loss=  []
+        Val_loss=  []
         min_val_loss = np.inf
         for i in tqdm(range(epoches), desc='Training'):
-            print("Epoch: ", i+1, '/', epoches)
+            # print("Epoch: ", i+1, '/', epoches)
             epoch_loss = self.train_epoch(optimizer,regularization=regularization)
-            Loss_trains.append(sum(epoch_loss)/len(epoch_loss))
+            Train_loss.append(sum(epoch_loss)/len(epoch_loss))
 
             Preds, Labels, epoch_loss = self.test()
             val_loss = sum(epoch_loss)/len(epoch_loss)
-            Loss_vals.append(val_loss)
+            Val_loss.append(val_loss)
 
             # Save the best model
             if val_loss < min_val_loss:
@@ -269,7 +269,7 @@ class PrunningFineTuner_VGG16:
                 torch.save(self.model, model_file_name)
 
         print("Finished fine tuning.")
-        return Loss_trains, Loss_vals
+        return Train_loss, Val_loss
         
 
     def train_epoch(self, optimizer = None, rank_filters = False, regularization = None):
@@ -522,12 +522,12 @@ if __name__ == '__main__':
     fine_tuner = PrunningFineTuner_VGG16(args.ds_name, model)
 
     if args.train:            
-        Loss_trains, Loss_vals = fine_tuner.train(epoches=args.train_epoch)#, regularization=regularizationFun)
+        Train_loss, Val_loss = fine_tuner.train(epoches=args.train_epoch)#, regularization=regularizationFun)
         model_file_name = '{}{}.pt'.format(args.models_dir,args.output_model)
         torch.save(model, model_file_name)
         loss_file_name = '{}_loss.pkl'.format(args.ds_name)
         with open(loss_file_name, 'wb') as f:
-            pkl.dump((Loss_trains, Loss_vals), f)
+            pkl.dump((Train_loss, Val_loss), f)
         files.download(loss_file_name)
 # # Load
 # with open('data.dat', 'rb') as f:
