@@ -246,6 +246,9 @@ class PrunningFineTuner_VGG16:
 
     def eval_test_results(self):
         # کدها رو حذف کردم. از کووید قابل برداشت است
+        # به این دلیل که در اونجا از دیتالودر تست برای اعتبارسنجی و از 
+        # eval
+        # برای ارزیابی داده‌های آزمون استفاده کرده بودم. برای اینکه نامها مثل استفاده باشند عوض شدند.
         return
 
     def train(self, optimizer = None, epoches=10, regularization=None):
@@ -328,7 +331,7 @@ class PrunningFineTuner_VGG16:
             param.requires_grad = True
 
         number_of_filters = self.total_num_filters()
-        num_filters_to_prune_per_iteration = 512
+        num_filters_to_prune_per_iteration = args.num_f2ppi
         iterations = int(float(number_of_filters) / num_filters_to_prune_per_iteration)
         # print(number_of_filters, num_filters_to_prune_per_iteration, iterations)
         iterations = int(iterations * 7. / 10) 
@@ -449,6 +452,7 @@ def get_args():
     parser.add_argument('--prune_input', type = str, default = 'vgg')
     parser.add_argument('--input_model', type = str, default = 'vgg')
     parser.add_argument('--output_model', type = str, default = 'taylor')
+    parser.add_argument("--num_f2ppi", type = int, default = 512)
     # Epochs After tuning: constant or decremental, const, dec
     parser.add_argument('--eat', type = str, default = '5') 
     parser.set_defaults(train=False)
