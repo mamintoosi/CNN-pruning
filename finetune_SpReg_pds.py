@@ -303,7 +303,7 @@ class PrunningFineTuner_VGG16:
             loss = self.criterion(self.model(input), Variable(label))
             if regularization is not None:
                 # print('Using Regularization: ',reg_name)
-                loss += 1e-8*regularization(0.5)
+                loss += args.landa*regularization(0.5)
             loss.backward()
             optimizer.step()
         return loss    
@@ -454,6 +454,8 @@ def get_args():
     parser.add_argument('--output_model', type = str, default = 'taylor')
     parser.add_argument("--num_f2ppi", type = int, default = 512)
     parser.add_argument("--prune_percent", type = int, default = 70)
+    parser.add_argument("--landa", type = float, default = 1e-8)
+    # landa is used instead of lambda, which is a python keyword
     # Epochs After tuning: constant or decremental, const, dec
     parser.add_argument('--eat', type = str, default = '5') 
     parser.set_defaults(train=False)
