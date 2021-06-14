@@ -334,9 +334,9 @@ class PrunningFineTuner_VGG16:
         num_filters_to_prune_per_iteration = args.num_f2ppi
         iterations = int(float(number_of_filters) / num_filters_to_prune_per_iteration)
         # print(number_of_filters, num_filters_to_prune_per_iteration, iterations)
-        iterations = int(iterations * 7. / 10) 
+        iterations = int(iterations * args.prune_percent / 100.0) 
         print(iterations)
-        print("Number of prunning iterations to reduce 70% filters", iterations)
+        print("Number of prunning iterations to reduce {}% filters: {}".format(args.prune_percent,iterations))
 
         dics = [] # A list for saving dics
         for i in range(iterations):
@@ -453,6 +453,7 @@ def get_args():
     parser.add_argument('--input_model', type = str, default = 'vgg')
     parser.add_argument('--output_model', type = str, default = 'taylor')
     parser.add_argument("--num_f2ppi", type = int, default = 512)
+    parser.add_argument("--prune_percent", type = int, default = 70)
     # Epochs After tuning: constant or decremental, const, dec
     parser.add_argument('--eat', type = str, default = '5') 
     parser.set_defaults(train=False)
