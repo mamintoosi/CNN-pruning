@@ -232,7 +232,7 @@ class PrunningFineTuner_VGG16:
             Labels.append(label.cpu().tolist())
         
         acc = float(correct) / total
-        print("Accuracy on ",val_test_set, ":", acc,"\t Loss:",sum(epoch_loss)/len(epoch_loss))
+        # print("Accuracy on ",val_test_set, ":", acc,"\t Loss:",sum(epoch_loss)/len(epoch_loss))
         
         self.model.train()
         
@@ -267,7 +267,7 @@ class PrunningFineTuner_VGG16:
                 min_val_loss = val_loss
                 model_file_name = '{}{}.pt'.format(args.models_dir,args.output_model)
                 torch.save(self.model, model_file_name)
-                print('Model Saved in epoch: ',i)
+                # print('Model Saved in epoch: ',i)
 
         print("Finished fine tuning.")
         return Train_loss, Val_loss
@@ -571,7 +571,7 @@ if __name__ == '__main__':
         else:
             fine_tuner.prune_reg()
 
-    Preds ,Labels, epoch_loss =  fine_tuner.test(val_test_set = 'val')
+    # Preds ,Labels, epoch_loss =  fine_tuner.test(val_test_set = 'val')
     Preds ,Labels, epoch_loss =  fine_tuner.test(val_test_set = 'test')
     cm = ConfusionMatrix(actual_vector=Labels, predict_vector=Preds) # Create CM From Data
     cm_file_name = '{}_{}_cm.pkl'.format(args.ds_name, args.output_model)
