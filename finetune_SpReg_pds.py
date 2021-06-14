@@ -470,7 +470,7 @@ if __name__ == '__main__':
 
     data_path = '/content/data'
 
-    if ds_name in ['cifar10']:
+    if ds_name in ['CIFAR10']:
         transform_train = transforms.Compose([
                 # transforms.RandomCrop(32,padding = 4),
                 transforms.Resize([224,224]),
