@@ -231,8 +231,8 @@ class PrunningFineTuner_VGG16:
             Preds.append(pred.cpu().tolist())
             Labels.append(label.cpu().tolist())
         
-        # acc = float(correct) / total
-        # print("Accuracy :", acc)
+        acc = float(correct) / total
+        print("Accuracy :", acc)
         
         self.model.train()
         
@@ -253,7 +253,7 @@ class PrunningFineTuner_VGG16:
         Train_loss=  []
         Val_loss=  []
         min_val_loss = np.inf
-        for i in tqdm(range(epoches), desc='Training'):
+        for i in tqdm(range(epoches), desc='Training', unit='Epoch'):
             # print("Epoch: ", i+1, '/', epoches)
             epoch_loss = self.train_epoch(optimizer,regularization=regularization)
             Train_loss.append(sum(epoch_loss)/len(epoch_loss))
