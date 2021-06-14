@@ -570,6 +570,7 @@ if __name__ == '__main__':
         else:
             fine_tuner.prune_reg()
 
+    Preds ,Labels, epoch_loss =  fine_tuner.test(val_test_set = 'val')
     Preds ,Labels, epoch_loss =  fine_tuner.test(val_test_set = 'test')
     cm = ConfusionMatrix(actual_vector=Labels, predict_vector=Preds) # Create CM From Data
     cm_file_name = '{}_{}_cm.pkl'.format(args.ds_name, args.output_model)
