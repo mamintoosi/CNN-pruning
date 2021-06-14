@@ -232,7 +232,7 @@ class PrunningFineTuner_VGG16:
             Labels.append(label.cpu().tolist())
         
         acc = float(correct) / total
-        print("Accuracy :", acc)
+        print("Accuracy on ",val_test_set, ":", acc,"\t Loss:",sum(epoch_loss)/len(epoch_loss))
         
         self.model.train()
         
