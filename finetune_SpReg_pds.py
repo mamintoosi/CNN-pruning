@@ -267,6 +267,7 @@ class PrunningFineTuner_VGG16:
                 min_val_loss = val_loss
                 model_file_name = '{}{}.pt'.format(args.models_dir,args.output_model)
                 torch.save(self.model, model_file_name)
+                print('Model Saved in epoch: ',i)
 
         print("Finished fine tuning.")
         return Train_loss, Val_loss
@@ -557,8 +558,8 @@ if __name__ == '__main__':
 
     if args.train:            
         Train_loss, Val_loss = fine_tuner.train(epoches=args.train_epoch)#, regularization=regularizationFun)
-        model_file_name = '{}{}.pt'.format(args.models_dir,args.output_model)
-        torch.save(model, model_file_name)
+        # model_file_name = '{}{}.pt'.format(args.models_dir,args.output_model)
+        # torch.save(model, model_file_name)
         loss_file_name = '{}_loss.pkl'.format(args.ds_name)
         with open(loss_file_name, 'wb') as f:
             pkl.dump((Train_loss, Val_loss), f)
