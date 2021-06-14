@@ -146,28 +146,31 @@ class PrunningFineTuner_VGG16:
             testset = datasets.CIFAR10(root=data_path,train=False,download=True,transform=transform_test)
             classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
             frac = 0.1
+            batch_size = 8
         elif ds_name == 'MNIST':
             trainset = datasets.MNIST(root=data_path,train=True,download=True,transform=transform_train)
             testset = datasets.MNIST(root=data_path,train=False,download=True,transform=transform_test)
             classes = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
             frac = 0.1
+            batch_size = 32
         elif ds_name == 'FashionMNIST':
             trainset = datasets.FashionMNIST(root=data_path,train=True,download=True,transform=transform_train)
             testset = datasets.FashionMNIST(root=data_path,train=False,download=True,transform=transform_test)
             classes = ('T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot')
             frac = 0.1
+            batch_size = 32
         elif ds_name == 'STL10':
             trainset = datasets.STL10(root=data_path,split='train',download=True,transform=transform_train)
             testset = datasets.STL10(root=data_path,split='test',download=True,transform=transform_test)
             classes = ('airplane', 'bird', 'car', 'cat', 'deer', 'dog', 'horse', 'monkey', 'ship', 'truck')
             frac = 0.5
+            batch_size = 32
         # elif ds_name == 'LSUN':
         #     trainset = datasets.LSUN(root=data_path,classes='train',transform=transform_train) #download=True,
         #     testset = datasets.LSUN(root=data_path,classes='test',transform=transform_test)
         #     classes = ('bedroom', 'bridge', 'church_outdoor', 'classroom', 'conference_room', 'dining_room', 'kitchen', 'living_room', 'restaurant', 'tower')
         #     frac = 0.01
             
-        batch_size = 32
         # workers = 0 # for local
         workers = 2 # for colab
 
