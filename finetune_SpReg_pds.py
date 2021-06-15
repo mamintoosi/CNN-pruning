@@ -438,6 +438,18 @@ def bar_filters_pruned(dic):
     # sns.barplot(x=keys_obd, y=vals_obd)
     return dic_obd
 
+def num_parameters(model,eps):
+    num_el = 0
+    num_zeros = 0
+    for n, _module in model.named_modules():
+#         print(_module)
+        if isinstance(_module, nn.Conv2d) or isinstance(_module, nn.Linear) and (not 'downsample' in n):
+            w = torch.flatten(_module.weight)
+            num_el += w.shape[0]
+            num_zeros += torch.sum(torch.abs(w)<eps)
+    ze = num_zeros.cpu().detach().numpy()
+    return num_el, ze
+
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--train", dest="train", action="store_true")
