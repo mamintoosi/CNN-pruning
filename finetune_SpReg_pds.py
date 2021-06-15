@@ -573,7 +573,7 @@ if __name__ == '__main__':
         loss_file_name = '{}_loss.pkl'.format(args.ds_name)
         with open(loss_file_name, 'wb') as f:
             pkl.dump((Train_loss, Val_loss), f)
-        files.download(loss_file_name)
+        # files.download(loss_file_name)
 
     elif args.prune:
         if args.reg_name is None:
