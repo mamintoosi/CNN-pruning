@@ -586,11 +586,11 @@ if __name__ == '__main__':
     cm = ConfusionMatrix(actual_vector=Labels, predict_vector=Preds) # Create CM From Data
     cm_file_name = '{}_{}_cm.pkl'.format(args.ds_name, args.output_model)
     pkl.dump(cm, open(cm_file_name, "wb" ) )
-    files.download(cm_file_name)
+    # files.download(cm_file_name)
 
-    dic_file_name = '{}_{}_dic.pkl'.format(args.ds_name, args.output_model)
-    if os.path.exists(dic_file_name):
-        files.download(dic_file_name)
+    # dic_file_name = '{}_{}_dic.pkl'.format(args.ds_name, args.output_model)
+    # if os.path.exists(dic_file_name):
+    #     files.download(dic_file_name)
 
     if args.test:
         cm.plot(cmap=plt.cm.Greens,normalized=False,number_label=True,plot_lib="seaborn")
