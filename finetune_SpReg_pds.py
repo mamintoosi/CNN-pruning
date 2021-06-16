@@ -235,7 +235,7 @@ class PrunningFineTuner_VGG16:
             Labels.append(label.cpu().tolist())
         
         acc = float(correct) / total
-        print("Accuracy on ",val_test_set, ":", acc,"\t Loss:",sum(epoch_loss)/len(epoch_loss))
+        print("Accuracy on ",val_test_set, ":{:.3f}".format(acc),"\t Loss:{:.3f}".format(sum(epoch_loss)/len(epoch_loss)))
         
         self.model.train()
         
@@ -253,6 +253,7 @@ class PrunningFineTuner_VGG16:
 
     def train(self, optimizer = None, epoches=10, regularization=None):
         if optimizer is None:
+            # فقط پارامترهای طبفه‌بند
             optimizer = optim.Adam(model.classifier.parameters(), lr=0.0001)
             # optimizer = optim.SGD(model.classifier.parameters(), lr=0.0001, momentum=0.9)
 
@@ -367,6 +368,7 @@ class PrunningFineTuner_VGG16:
             print("Filters prunned", str(message))
             self.test()
             print("Fine tuning to recover from prunning iteration.")
+            # همه پارامترها
             optimizer = optim.Adam(self.model.parameters(), lr=0.0001)
             # optimizer = optim.SGD(self.model.parameters(), lr=0.001, momentum=0.9)
             if args.eat == 'dec':
